@@ -1,0 +1,163 @@
+apiVersion: {{ include "common-lib.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common-lib.names.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "common-lib.labels.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{- include "common-lib.labels.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common-lib.labels.selectorLabels" . | nindent 8 }}
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    spec:
+      hostname: {{ .Values.hostname }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "common-lib.names.serviceAccountName" . }}
+      initContainers:
+        - name: init-node
+          image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
+          imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
+          command: ['sh', '-c', "base64 --decode <<< $(cat /etc/init-node/init-node.sh) | sh"]
+          env:
+            - name: IS_SLURM_MASTER
+              value: "yes"
+          volumeMounts:
+            - name: init-node-script
+              mountPath: /etc/init-node
+            - name: munge-key-tmp
+              mountPath: /etc/munge-tmp
+            - name: etc-munge
+              mountPath: /etc/munge
+            - name: jwt-key-tmp
+              mountPath: /etc/jwt-tmp
+            - name: etc-jwt
+              mountPath: /etc/jwt
+            - name: var-run-munge
+              mountPath: /var/run/munge
+            - name: var-lib-munge
+              mountPath: /var/lib/munge
+      containers:
+        - name: munged
+          securityContext:
+            {{- toYaml .Values.munged.securityContext | nindent 12 }}
+          image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
+          imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
+          command: ["/sbin/munged"]
+          args: ["-F", "--key-file", "/etc/munge/munge.key", "--num-threads", "10", "--socket=/var/run/munge/munge.socket.2"]
+          volumeMounts:
+            - name: etc-munge
+              mountPath: /etc/munge
+            - name: var-run-munge
+              mountPath: /var/run/munge
+            - name: var-lib-munge
+              mountPath: /var/lib/munge
+          resources:
+            {{- toYaml .Values.munged.resources | nindent 12 }}
+        - name: slurmrestd
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ include "slurm.image.repository" . }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
+          env:
+            - name: "SLURM_JWT"
+              value: "daemon"
+          command: ["/usr/sbin/slurmrestd"]
+          args: ["-f", "/etc/slurm/slurm.conf", "-a", "rest_auth/jwt", "-vvv", "0.0.0.0:6820"] # Higher verbosity levels will have significant performance impact. Remove later
+          ports:
+            - containerPort: 6820
+          volumeMounts:
+            - name: var-run-munge
+              mountPath: /var/run/munge
+            - name: var-lib-munge
+              mountPath: /var/lib/munge
+            - name: etc-jwt
+              mountPath: /etc/jwt
+            - name: slurm-config
+              mountPath: /etc/slurm
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: init-node-script
+          secret:
+            secretName: {{ .Release.Name }}-slurm-cluster-init-node
+            defaultMode: 0777
+        - name: munge-key-tmp
+          secret:
+            secretName: {{ .Release.Name }}-slurm-cluster-munge-key
+            defaultMode: 0777
+        - name: jwt-key-tmp
+          secret:
+            secretName: {{ .Release.Name }}-slurm-cluster-jwt-key
+            defaultMode: 0777
+        - name: etc-munge
+          emptyDir: {}
+        - name: etc-jwt
+          emptyDir: {}
+        - name: var-run-munge
+          emptyDir: {}
+        - name: var-lib-munge
+          emptyDir: {}
+        - name: slurm-config
+          projected:
+            sources:
+            - configMap:
+                name: {{ .Release.Name }}-slurm-configmap
+                items:
+                  - key: slurm.conf
+                    path: slurm.conf
+                    mode: 0644
+            - configMap:
+                name: {{ .Release.Name }}-nodes-configmap
+                items:
+                  - key: nodes.conf
+                    path: nodes.conf
+                    mode: 0644
+            - configMap:
+                name: {{ .Release.Name }}-partitions-configmap
+                items:
+                  - key: partitions.conf
+                    path: partitions.conf
+                    mode: 0644
+            - configMap:
+                name: {{ .Release.Name }}-cgroup-configmap
+                items:
+                  - key: cgroup.conf
+                    path: cgroup.conf
+                    mode: 0644
+            - configMap:
+                name: {{ .Release.Name }}-slurmdbd-configmap
+                items:
+                  - key: slurmdbd.conf
+                    path: slurmdbd.conf
+                    mode: 0600
+            - configMap:
+                name: {{ .Release.Name }}-gres-configmap
+                items:
+                  - key: gres.conf
+                    path: gres.conf
+                    mode: 0644

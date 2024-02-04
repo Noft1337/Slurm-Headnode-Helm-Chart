@@ -1,0 +1,16 @@
+{{ $currentScope := . }}
+{{- range $path, $_ := .Files.Glob "config/*.conf" }}
+  {{- with $currentScope }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ base $path | replace ".conf" "" | replace "_" "-" }}-configmap
+  labels:
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  {{ base $path }}: |
+    {{- tpl (.Files.Get $path) $currentScope | nindent 4 -}}
+  {{- end }}
+---
+{{- end }}

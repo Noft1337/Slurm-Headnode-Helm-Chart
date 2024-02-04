@@ -1,0 +1,466 @@
+global:
+  slurm:
+    image:
+      repository: artifactory.pele.local/pele-dockers/devops/base/slurm
+      tag: latest # Forcing the developer to set value when deploying new release
+      pullPolicy: Always
+  database:
+    host: slurm-db-prod.pc8080.pele.local
+  kafka:
+    host: kafka-bootstrap.pele.local:9092
+
+slurmctld:
+  enabled: true
+  replicaCount: 1
+  podManagementPolicy: Parallel
+
+  nodeSelector:
+    kubernetes.io/hostname: worker01.slurm.pc8080.pele.local
+
+  networkSettings:
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+
+  podAnnotations:
+    fluentbit.io/parser: slurmctld_parser
+
+  securityContext: {}
+  resources: {}
+
+  init_node:
+    securityContext: {}
+
+  munged:
+    securityContext:
+      runAsUser: 511
+    resources: {}
+
+  storage:
+    spool:
+      storageClass: trident-iscsi-csi
+      size: 30Gi
+
+slurmd:
+  enabled: false
+  replicaCount: 0
+
+  networkSettings: {}
+
+  securityContext:
+    privileged: true
+
+  resources:
+    requests:
+      memory: 2G
+      cpu: 2
+    limits:
+      memory: 2G
+      cpu: 2
+
+  init_node:
+    securityContext: {}
+
+  munged:
+    securityContext:
+      runAsUser: 511
+    resources: {}
+
+slurmdbd:
+  enabled: true
+  replicaCount: 1
+
+  nodeSelector:
+    kubernetes.io/hostname: worker01.slurm.pc8080.pele.local
+
+  networkSettings:
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+
+  podAnnotations:
+    fluentbit.io/parser: slurmctld_parser
+
+  securityContext: {}
+  resources: {}
+
+  init_node:
+    securityContext: {}
+
+  munged:
+    securityContext:
+      runAsUser: 511
+    resources: {}
+
+slurmrestd:
+  enabled: true
+  replicaCount: 3
+
+  hostname: slurmrestd
+
+  podAnnotations:
+    fluentbit.io/parser: slurmctld_parser
+
+  securityContext:
+    runAsUser: 513
+    runAsGroup: 513
+
+  resources: {}
+
+  ingress:
+    enabled: true
+    annotations: {}
+    hosts:
+      - host: slurmrestd.apps.slurm.pc8080.pele.local
+        paths:
+          - path: "/"
+            svcPort: 6820
+    tls: []
+
+utils:
+  imagePullSecrets: []
+  affinity: {}
+  tolerations: []
+  podSecurityContext: {}
+  securityContext: {}
+  resources: {}
+  config:
+    mountpoint: /mnt/slurm-config
+  jobs:
+    - name: slurm-config-distribution
+      enabled: true
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+      restartPolicy: "Never"
+      backoffLimit: 0
+      volumes:
+        - name: infra-nfs
+          type: nfs
+          host: 172.16.200.11
+          path: /Slurm
+      image:
+        repository: artifactory.pele.local/pele-dockers/devops/base/rocky
+        tag: "9.1"
+        pullPolicy: Always
+      script:
+        - if ! test -d {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}; then mkdir {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}; fi
+        - cp /etc/slurm/* {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}/
+
+slurm_config:
+  slurmd_timeout: 300
+  ignoreSystemd: false
+  
+  plugins:
+    JobAcctGatherType:
+      prefix: jobacct_gather
+      types: [cgroup]
+    ProctrackType:
+      prefix: proctrack
+      types: [cgroup]
+    TaskPlugin:
+      prefix: task
+      types: [cgroup,affinity]
+
+  nodes:
+    default_properties:
+      Boards: 1
+      CPUs: 48
+      Sockets: 2
+      CoresPerSocket: 24
+      ThreadsPerCore: 1
+      RealMemory: 1546336
+      Weight: 10
+      MemSpecLimit: 100000
+      CpuSpecList: [0, 24]
+      Gres:
+        cards: 0
+        gpu:a100: 0
+        shard: 0
+    ranges:
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 0
+              end: 0
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 15
+              end: 29
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 52
+              end: 57
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 66
+              end: 73
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 82
+              end: 89
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 92
+              end: 92
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 2
+              end: 2
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 9
+              end: 12
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 36
+              end: 45
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 50
+              end: 51
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 58
+              end: 65
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          Gres:
+            cards: 6
+            gpu:a100: 3
+            shard: 24
+          Features: [gpu, cards]
+
+  gres:
+    ranges:
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 0
+              end: 0
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 15
+              end: 29
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 52
+              end: 57
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 66
+              end: 73
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 82
+              end: 89
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 92
+              end: 92
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 2
+              end: 2
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 9
+              end: 12
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 36
+              end: 45
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 50
+              end: 51
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml
+      - spec:
+          prefix: storm
+          parameters:
+            - format: "%02d"
+              start: 58
+              end: 65
+            - format: "%02d"
+              start: 1
+              end: 10
+        properties:
+          AutoDetect: nvml

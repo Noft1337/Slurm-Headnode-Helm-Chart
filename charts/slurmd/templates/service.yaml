@@ -1,0 +1,7 @@
+{{/*
+Call common service creation functions
+*/}}
+
+{{- include "common-lib.service.create" . }}
+---
+{{- include "common-lib.headless-service.create" . }}

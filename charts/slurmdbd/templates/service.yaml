@@ -1,0 +1,5 @@
+{{/*
+Call a common service creation function
+*/}}
+
+{{- include "common-lib.service.create" . }}

@@ -1,0 +1,5 @@
+{{/*
+Call a common hpa creation function with apiVersion and kind of the current deployment as arguments.
+*/}}
+
+{{- include "common-lib.hpa.create" (dict "apiVersion" "apps/v1" "kind" "Deployment" "context" .Values.autoscaling) }}

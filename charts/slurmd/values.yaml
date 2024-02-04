@@ -1,0 +1,52 @@
+replicaCount: 0
+
+image:
+  repository: artifactory.pele.local/pele-dockers/devops/base/slurm
+  tag: "0.0.0" # Forcing the developer to set value when deploying new release
+  pullPolicy: Always
+
+init_node:
+  securityContext: {}
+
+munged:
+  securityContext:
+    runAsUser: 511
+  resources: {}
+
+securityContext: {}
+resources: {}
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  ports:
+    - name: slurmd-tcp
+      protocol: TCP
+      port: 6818
+      targetPort: 6818
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+networkSettings: {}

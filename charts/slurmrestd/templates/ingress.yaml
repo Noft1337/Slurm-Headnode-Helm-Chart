@@ -1,0 +1,5 @@
+{{/*
+Call a common ingress creation function
+*/}}
+
+{{- include "common-lib.ingress.create" . }}
