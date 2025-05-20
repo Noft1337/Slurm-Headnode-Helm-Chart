@@ -92,9 +92,16 @@ slurmdbd:
 
 slurmrestd:
   enabled: true
-  replicaCount: 3
+  replicaCount: 1
 
   hostname: slurmrestd
+
+  nodeSelector:
+    kubernetes.io/hostname: k3d-slurm-cluster-agent-0
+
+  networkSettings:
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
 
   podAnnotations:
     fluentbit.io/parser: slurmctld_parser

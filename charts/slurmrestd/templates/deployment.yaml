@@ -38,6 +38,9 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "common-lib.names.serviceAccountName" . }}
+      {{- with .Values.networkSettings }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       initContainers:
         - name: init-node
           image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
