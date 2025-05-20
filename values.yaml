@@ -1,11 +1,11 @@
 global:
   slurm:
     image:
-      repository: artifactory.pele.local/pele-dockers/devops/base/slurm
-      tag: latest # Forcing the developer to set value when deploying new release
+      repository: avimorgm/slurm-headnode
+      tag: 24-11-1 # Forcing the developer to set value when deploying new release
       pullPolicy: Always
   database:
-    host: slurm-db-prod.pc8080.pele.local
+    host: pxc-db-proxysql.percona.svc.cluster.local
   kafka:
     host: kafka-bootstrap.pele.local:9092
 
@@ -15,7 +15,7 @@ slurmctld:
   podManagementPolicy: Parallel
 
   nodeSelector:
-    kubernetes.io/hostname: worker01.slurm.pc8080.pele.local
+    kubernetes.io/hostname: k3d-slurm-cluster-agent-0
 
   networkSettings:
     hostNetwork: true
@@ -32,13 +32,13 @@ slurmctld:
 
   munged:
     securityContext:
-      runAsUser: 511
+      runAsUser: 998
     resources: {}
 
   storage:
     spool:
-      storageClass: trident-iscsi-csi
-      size: 30Gi
+      storageClass: local-path
+      size: 5Gi
 
 slurmd:
   enabled: false
@@ -62,7 +62,7 @@ slurmd:
 
   munged:
     securityContext:
-      runAsUser: 511
+      runAsUser: 998
     resources: {}
 
 slurmdbd:
@@ -70,7 +70,7 @@ slurmdbd:
   replicaCount: 1
 
   nodeSelector:
-    kubernetes.io/hostname: worker01.slurm.pc8080.pele.local
+    kubernetes.io/hostname: k3d-slurm-cluster-agent-0
 
   networkSettings:
     hostNetwork: true
@@ -87,7 +87,7 @@ slurmdbd:
 
   munged:
     securityContext:
-      runAsUser: 511
+      runAsUser: 998
     resources: {}
 
 slurmrestd:

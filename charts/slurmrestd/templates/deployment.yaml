@@ -68,7 +68,7 @@ spec:
           image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
           imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
           command: ["/sbin/munged"]
-          args: ["-F", "--key-file", "/etc/munge/munge.key", "--num-threads", "10", "--socket=/var/run/munge/munge.socket.2"]
+          args: ["-F", "--key-file", "/etc/munge/munge.key", "--num-threads", "10", "--socket=/var/run/munge/munge.socket.2", "--force"]
           volumeMounts:
             - name: etc-munge
               mountPath: /etc/munge

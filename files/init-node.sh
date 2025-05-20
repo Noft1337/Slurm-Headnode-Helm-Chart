@@ -16,7 +16,7 @@ if [ ! -z "$IS_SLURM_MASTER" ]; then
   IS_DATABASE_EXIST='0'
   while [ "1" != "$IS_DATABASE_EXIST" ]; do
     echo "Waiting for database $MARIADB_DATABASE on $MARIADB_HOST..."
-    IS_DATABASE_EXIST="`mysql -h {{ .Values.global.database.host }} -u slurm -pfToMkdihxGqUQ5gm -qfsBe "select count(*) as c from information_schema.schemata where schema_name='slurm_acct_db'" -H | sed -E 's/c|<[^>]+>//gi' 2>&1`"
+    IS_DATABASE_EXIST="`mysql -h {{ .Values.global.database.host }} -u slurm -p"password" -qfsBe "select count(*) as c from information_schema.schemata where schema_name='slurm_acct_db'" -H | sed -E 's/c|<[^>]+>//gi' 2>&1`"
     #IS_DATABASE_EXIST="`mysql -h {{ .Release.Name }}-mariadb-galera -u root -p"password-for-mariadb" -qfsBe "select count(*) as c from information_schema.schemata where schema_name='slurm_acct_db'" -H | sed -E 's/c|<[^>]+>//gi' 2>&1`"
     sleep 5
   done

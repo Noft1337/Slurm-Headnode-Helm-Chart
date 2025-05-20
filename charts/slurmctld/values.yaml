@@ -10,15 +10,15 @@ hostname: slurmctld
 storage:
   spool:
     name: slurm-controller-spool
-    storageClass: trident-iscsi-csi
-    size: 50Gi
+    storageClass: local-path
+    size: 5Gi
 
 init_node:
   securityContext: {}
 
 munged:
   securityContext:
-    runAsUser: 511
+    runAsUser: 998
   resources: {}
 
 securityContext: {}

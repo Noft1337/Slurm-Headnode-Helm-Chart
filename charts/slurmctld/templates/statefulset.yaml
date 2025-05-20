@@ -81,7 +81,7 @@ spec:
           image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
           imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
           command: ["/sbin/munged"]
-          args: ["-F", "--key-file", "/etc/munge/munge.key", "--num-threads", "10", "--socket=/var/run/munge/munge.socket.2"]
+          args: ["-f", "-F", "--key-file", "/etc/munge/munge.key", "--num-threads", "10", "--socket=/var/run/munge/munge.socket.2"]
           volumeMounts:
             - name: etc-munge
               mountPath: /etc/munge
@@ -188,12 +188,6 @@ spec:
                   - key: job_submit.lua
                     path: job_submit.lua
                     mode: 0755
-            - configMap:
-                name: {{ .Release.Name }}-acct-gather-configmap
-                items:
-                  - key: acct_gather.conf
-                    path: acct_gather.conf
-                    mode: 0644
   # Add the VolumeClaimTemplate here
   volumeClaimTemplates:
     - metadata:
