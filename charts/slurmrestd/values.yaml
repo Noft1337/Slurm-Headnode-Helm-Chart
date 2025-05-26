@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: avimorgm/slurm-headnode
-  tag: "24-11-1" # Set slurmrestd version to enable paradise to use old v0.0.37 (temporary).
+  tag: "24-11-5" # Set slurmrestd version to enable paradise to use old v0.0.37 (temporary).
   pullPolicy: Always
 
 hostname: slurmrestd

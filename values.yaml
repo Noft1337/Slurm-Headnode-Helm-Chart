@@ -2,7 +2,7 @@ global:
   slurm:
     image:
       repository: avimorgm/slurm-headnode
-      tag: 24-11-1 # Forcing the developer to set value when deploying new release
+      tag: 24-11-5 # Forcing the developer to set value when deploying new release
       pullPolicy: Always
   database:
     host: pxc-db-proxysql.percona.svc.cluster.local
