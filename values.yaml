@@ -163,304 +163,39 @@ slurm_config:
     default_properties:
       Boards: 1
       CPUs: 48
-      Sockets: 2
-      CoresPerSocket: 24
       ThreadsPerCore: 1
       RealMemory: 1546336
       Weight: 10
-      MemSpecLimit: 100000
-      CpuSpecList: [0, 24]
-      Gres:
-        cards: 0
-        gpu:a100: 0
-        shard: 0
+      # Sockets: 2
+      # CoresPerSocket: 24
+      # MemSpecLimit: 100000
+      # CpuSpecList: [0, 24]
+      # Gres:
+      #   gpu:a100: 0
+      #   shard: 0
     ranges:
       - spec:
-          prefix: storm
+          prefix: dev-
           parameters:
             - format: "%02d"
-              start: 0
-              end: 0
+              start: 10
+              end: 10
             - format: "%02d"
-              start: 1
+              start: 10
               end: 10
         properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 15
-              end: 29
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 52
-              end: 57
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 66
-              end: 73
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 82
-              end: 89
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 92
-              end: 92
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 2
-              end: 2
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 9
-              end: 12
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 36
-              end: 45
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 50
-              end: 51
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
-          Features: [gpu, cards]
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 58
-              end: 65
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          Gres:
-            cards: 6
-            gpu:a100: 3
-            shard: 24
           Features: [gpu, cards]
 
-  gres:
-    ranges:
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 0
-              end: 0
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 15
-              end: 29
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 52
-              end: 57
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 66
-              end: 73
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 82
-              end: 89
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 92
-              end: 92
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 2
-              end: 2
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 9
-              end: 12
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 36
-              end: 45
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 50
-              end: 51
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
-      - spec:
-          prefix: storm
-          parameters:
-            - format: "%02d"
-              start: 58
-              end: 65
-            - format: "%02d"
-              start: 1
-              end: 10
-        properties:
-          AutoDetect: nvml
+  # gres:
+  #   ranges:
+  #     - spec:
+  #         prefix: dev-
+  #         parameters:
+  #           - format: "%02d"
+  #             start: 10
+  #             end: 10
+  #           - format: "%02d"
+  #             start: 10
+  #             end: 10
+  #       properties:
+  #         AutoDetect: nvml
