@@ -81,7 +81,7 @@ spec:
         - name: slurmrestd
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ include "slurm.image.repository" . }}:{{ .Values.image.tag }}"
+          image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"
           imagePullPolicy: {{ include "slurm.image.pullPolicy" . }}
           env:
             - name: "SLURM_JWT"

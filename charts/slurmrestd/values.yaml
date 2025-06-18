@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: avimorgm/slurm-headnode
-  tag: "24-11-5" # Set slurmrestd version to enable paradise to use old v0.0.37 (temporary).
+  repository: artifactory.pele.local/pele-dockers/devops/base/slurm
+  tag: "0.0.0" # Forcing the developer to set value when deploying new release
   pullPolicy: Always
 
 hostname: slurmrestd
