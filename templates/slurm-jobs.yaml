@@ -1,111 +1,111 @@
-{{ range $job := .Values.utils.jobs }}
-{{- if $job.enabled -}}
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: "{{ $.Release.Name }}-{{ $job.name }}"
-  namespace: "{{ $.Release.Namespace }}"
-  {{- with $job.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  backoffLimit: {{ $job.backoffLimit }}
-  template:
-    metadata:
-      labels:
-        release: "{{ $.Release.Name }}"
-        heritage: "{{ $.Release.Service }}"
-    {{- with $job.annotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
-    spec:
-      {{- with $.Values.utils.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with $.Values.utils.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with $.Values.utils.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      securityContext:
-        {{- toYaml $.Values.utils.podSecurityContext | nindent 8 }}
-      restartPolicy: {{ $job.restartPolicy }}
-      containers:
-        - name: {{ $job.name }}
-          securityContext:
-            {{- toYaml $.Values.utils.securityContext | nindent 12 }}
-          image: "{{ $job.image.repository }}:{{ $job.image.tag }}"
-          imagePullPolicy: {{ $job.image.pullPolicy }}
-          command: ["/bin/sh", "-c"]
-          args: 
-            - |
-            {{- range $job.script }}
-            {{ tpl (printf "%s" .) $ | indent 2 }}
-            {{- end }}
-          volumeMounts:
-            - name: slurm-config
-              mountPath: /etc/slurm
-            {{- range $volume := $job.volumes }}
-            - name: {{ $volume.name }}
-              mountPath: {{ $.Values.utils.config.mountpoint }}
-            {{- end }}
-          resources:
-            {{- toYaml $.Values.utils.resources | nindent 12 }}
-      volumes:
-        - name: slurm-config
-          projected:
-            sources:
-            - configMap:
-                name: {{ $.Release.Name }}-slurm-configmap
-                items:
-                  - key: slurm.conf
-                    path: slurm.conf
-                    mode: 0644
-            - configMap:
-                name: {{ $.Release.Name }}-nodes-configmap
-                items:
-                  - key: nodes.conf
-                    path: nodes.conf
-                    mode: 0644
-            - configMap:
-                name: {{ $.Release.Name }}-partitions-configmap
-                items:
-                  - key: partitions.conf
-                    path: partitions.conf
-                    mode: 0644
-            - configMap:
-                name: {{ $.Release.Name }}-cgroup-configmap
-                items:
-                  - key: cgroup.conf
-                    path: cgroup.conf
-                    mode: 0644
-            - configMap:
-                name: {{ $.Release.Name }}-gres-configmap
-                items:
-                  - key: gres.conf
-                    path: gres.conf
-                    mode: 0644
-            - configMap:
-                name: {{ $.Release.Name }}-acct-gather-configmap
-                items:
-                  - key: acct_gather.conf
-                    path: acct_gather.conf
-                    mode: 0644
-        {{- range $volume := $job.volumes }}
-        - name: {{ $volume.name }}
-          {{- if eq $volume.type "nfs" }}
-          nfs:
-            server: {{ $volume.host }}
-            path: {{ $volume.path }}
-          {{- end }}
-        {{- end }}
+# {{ range $job := .Values.utils.jobs }}
+# {{- if $job.enabled -}}
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: "{{ $.Release.Name }}-{{ $job.name }}"
+#   namespace: "{{ $.Release.Namespace }}"
+#   {{- with $job.annotations }}
+#   annotations:
+#     {{- toYaml . | nindent 4 }}
+#   {{- end }}
+# spec:
+#   backoffLimit: {{ $job.backoffLimit }}
+#   template:
+#     metadata:
+#       labels:
+#         release: "{{ $.Release.Name }}"
+#         heritage: "{{ $.Release.Service }}"
+#     {{- with $job.annotations }}
+#       annotations:
+#         {{- toYaml . | nindent 8 }}
+#     {{- end }}
+#     spec:
+#       {{- with $.Values.utils.imagePullSecrets }}
+#       imagePullSecrets:
+#         {{- toYaml . | nindent 8 }}
+#       {{- end }}
+#       {{- with $.Values.utils.affinity }}
+#       affinity:
+#         {{- toYaml . | nindent 8 }}
+#       {{- end }}
+#       {{- with $.Values.utils.tolerations }}
+#       tolerations:
+#         {{- toYaml . | nindent 8 }}
+#       {{- end }}
+#       securityContext:
+#         {{- toYaml $.Values.utils.podSecurityContext | nindent 8 }}
+#       restartPolicy: {{ $job.restartPolicy }}
+#       containers:
+#         - name: {{ $job.name }}
+#           securityContext:
+#             {{- toYaml $.Values.utils.securityContext | nindent 12 }}
+#           image: "{{ $job.image.repository }}:{{ $job.image.tag }}"
+#           imagePullPolicy: {{ $job.image.pullPolicy }}
+#           command: ["/bin/sh", "-c"]
+#           args: 
+#             - |
+#             {{- range $job.script }}
+#             {{ tpl (printf "%s" .) $ | indent 2 }}
+#             {{- end }}
+#           volumeMounts:
+#             - name: slurm-config
+#               mountPath: /etc/slurm
+#             {{- range $volume := $job.volumes }}
+#             - name: {{ $volume.name }}
+#               mountPath: {{ $.Values.utils.config.mountpoint }}
+#             {{- end }}
+#           resources:
+#             {{- toYaml $.Values.utils.resources | nindent 12 }}
+#       volumes:
+#         - name: slurm-config
+#           projected:
+#             sources:
+#             - configMap:
+#                 name: {{ $.Release.Name }}-slurm-configmap
+#                 items:
+#                   - key: slurm.conf
+#                     path: slurm.conf
+#                     mode: 0644
+#             - configMap:
+#                 name: {{ $.Release.Name }}-nodes-configmap
+#                 items:
+#                   - key: nodes.conf
+#                     path: nodes.conf
+#                     mode: 0644
+#             - configMap:
+#                 name: {{ $.Release.Name }}-partitions-configmap
+#                 items:
+#                   - key: partitions.conf
+#                     path: partitions.conf
+#                     mode: 0644
+#             - configMap:
+#                 name: {{ $.Release.Name }}-cgroup-configmap
+#                 items:
+#                   - key: cgroup.conf
+#                     path: cgroup.conf
+#                     mode: 0644
+#             - configMap:
+#                 name: {{ $.Release.Name }}-gres-configmap
+#                 items:
+#                   - key: gres.conf
+#                     path: gres.conf
+#                     mode: 0644
+#             - configMap:
+#                 name: {{ $.Release.Name }}-acct-gather-configmap
+#                 items:
+#                   - key: acct_gather.conf
+#                     path: acct_gather.conf
+#                     mode: 0644
+#         {{- range $volume := $job.volumes }}
+#         - name: {{ $volume.name }}
+#           {{- if eq $volume.type "nfs" }}
+#           nfs:
+#             server: {{ $volume.host }}
+#             path: {{ $volume.path }}
+#           {{- end }}
+#         {{- end }}
 
----
-{{- end }}
-{{- end }}
+# ---
+# {{- end }}
+# {{- end }}

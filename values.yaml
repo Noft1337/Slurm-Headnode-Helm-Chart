@@ -124,25 +124,6 @@ utils:
   resources: {}
   config:
     mountpoint: /mnt/slurm-config
-  jobs:
-    - name: slurm-config-distribution
-      enabled: true
-      annotations:
-        argocd.argoproj.io/hook: PostSync
-      restartPolicy: "Never"
-      backoffLimit: 0
-      volumes:
-        - name: infra-nfs
-          type: nfs
-          host: 172.16.200.11
-          path: /Slurm
-      image:
-        repository: artifactory.pele.local/pele-dockers/devops/base/rocky
-        tag: "9.1"
-        pullPolicy: Always
-      script:
-        - if ! test -d {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}; then mkdir {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}; fi
-        - cp /etc/slurm/* {{ .Values.utils.config.mountpoint }}/{{ .Release.Name }}/
 
 slurm_config:
   slurmd_timeout: 300
@@ -186,8 +167,9 @@ slurm_config:
         properties:
           Features: [gpu, cards]
 
-  # gres:
-  #   ranges:
+  gres:
+    default_properties: {}
+    ranges: {}
   #     - spec:
   #         prefix: dev-
   #         parameters:
