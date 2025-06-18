@@ -165,6 +165,10 @@ slurm_config:
               start: 10
               end: 10
         properties:
+          CPUs: 8
+          Sockets: 8
+          CoresPerSocket: 1
+          RealMemory: 15000
           Features: [gpu, cards]
 
   gres:
