@@ -109,7 +109,7 @@ slurmrestd:
     enabled: true
     annotations: {}
     hosts:
-      - host: slurmrestd.apps.slurm.pc8080.pele.local
+      - host: slurmrestd
         paths:
           - path: "/"
             svcPort: 6820
@@ -184,4 +184,4 @@ slurm_config:
   #             start: 10
   #             end: 10
   #       properties:
-  #         AutoDetect: nvml
+  #         AutoDetect: nvmL

@@ -1,139 +1,110 @@
-# slurm-headnode-helm-chart
+# slurm-headnode-helm-chart 📦
 
-A kubernetes helm chart which deploy's slurm headnode consists the following
-subcharts: slurmdbd, slurmctld, slurmrestd.
+A Kubernetes Helm chart to deploy a Slurm headnode, composed of the following subcharts:
 
-## Configuration
+* **slurmctld** 🧠
+* **slurmdbd** 📊
+* **slurmrestd** 🌐
+* **slurmd** 🖥️
 
-This helm chart can be deployed with many different configurations, the most
-common ones are for production and testing environments.
+---
 
-### Production
+## Configuration ⚙️
 
-In production, slurm is deployed on a Kubernetes cluster that resides in a
-different network separated from the compute nodes environment.
+This Helm chart supports multiple configurations. The most common use cases are for **production** and **testing** environments.
 
-There is a network issue when slurm is deployed on
-kubernetes with non-kubernetes compute nodes: for a currently yet unknown
-reason (but `munge` is suspected), when `slurmctld` sends an RPC to a `slurmd`
-instance, it attempts to send its response to the *inner* IP address of the
-`slurmctld` - the IP address of the container it resides in, which is
-inaccessible for the `slurmd` instance which resides on another cluster, in
-another network.
+---
 
-Thus, deploying this chart on the current production environment requires some
-specific configuration for the `slurmctld` and `slurmdbd` subcharts.
+## Production Environment 🚀
 
-#### Slurmctld
+In production, Slurm is deployed on a Kubernetes cluster that resides on a **separate network** from the compute nodes.
 
-To solve this, the `slurmctld` pod needs to be accessible to the compute node
-network:
+> ⚠️ **Note**: A known network issue occurs when Slurm is deployed on Kubernetes and compute nodes are external. When `slurmctld` sends an RPC to a `slurmd`, the response is sent to the *container's internal IP*, which is unreachable from external `slurmd` nodes. This may be related to `munge`.
 
-The `slurmctld` pod should have `nodeSelector` set to a specific node, with
-`network` set to `host` and consequentially `dnsPolicy` set to
-`ClusterFirstWithHostNet`. With `nodeSelector` set, the `SlurmctldHost` in
-`slurm.conf` will automatically be set to the same node.
+### Required Adjustments 🔧
 
-Lastly, since the `slurmctld` runs in a different network and most likely also
-a different domain/subdomain, and in order to simplify node configuration, it
-is recommended to configure a `dnsConfig` with a fitting `search` field in the
-`slurmctld` pod specification.
+#### slurmctld 🧠
 
-#### Slurmdbd
+* Add a `nodeSelector` to pin the pod to a specific node.
+* Enable `hostNetwork: true` and set `dnsPolicy: ClusterFirstWithHostNet`.
+* Add a `dnsConfig.search` domain matching the compute node environment.
+* The `SlurmctldHost` will automatically match the selected node.
 
-Similarly, the same issue applies to `slurmdbd`, and to solve it, similar.
-configuration needs to be applied here too:
+#### slurmdbd 📊
 
-The `slurmdbd` pod should have `nodeSelector` set to a specific node, with
-`network` set to `host` and consequentially `dnsPolicy` set to
-`ClusterFirstWithHostNet`. Also, the `AccountingStorageHost` in `slurm.conf`
-and the `DbdHost` in `slurmdbd.conf` must be set to the same node.
+* Apply the same settings as `slurmctld`:
 
-#### Ganesha
+  * `nodeSelector`
+  * `hostNetwork: true`
+  * `dnsPolicy: ClusterFirstWithHostNet`
+* Set both `AccountingStorageHost` (in `slurm.conf`) and `DbdHost` (in `slurmdbd.conf`) to the same node.
 
-To export the configuration files for slurm to the compute environment, the
-`NFS` server `ganesha` must be enabled and be configured to have exactly 1
-replica.
+#### slurmd 🖥️
 
-#### Slurmd
+* Disable the `slurmd` subchart.
+* Set the replica count to **0**.
 
-No dynamic `slurmd` instances are required in production so the `slurmd`
-subchart should be disabled and configured to have exactly 0 replicas.
+#### Slurm Configuration 🛠️
 
-#### Slurm config
+* Configure `Nodes` and `Partitions` according to production needs.
 
-Nodes and partitions should be configured according to production needs.
+---
 
-### Testing
+## Testing Environment 🧪
 
-To test slurm, we do not use bare-metal nodes from the compute environment,
-but dynamic `slurmd` instances as pods.
+For testing, we use **dynamic slurmd pods** instead of external compute nodes. This avoids the networking issue mentioned above.
 
-As these instances are within the same Kubernetes cluster as the `slurmctld`,
-the network issue mentioned above become obsolete, but another issue arise:
+However, Slurm components must be correctly resolvable and reachable from within the Kubernetes cluster.
 
-The `slurmctld` must be started on a node (or pod in this case) with its
-hostname set to a valid value configured as `SlurmctldHost` in `slurm.conf`,
-and similarly the `slurmdbd` must be started on a node with its hostname set
-to a valid value configured as `DbdHost` in `slurmdbd.conf`. Also, these hosts
-must be resolvable and accessible from the dynamic `slurmd` instances.
+### Required Adjustments 🔧
 
-Thus different configuration is required.
+#### slurmctld 🧠
 
-#### Slurmctld
+* Set `setHostnameAsFQDN: true` to use the pod’s fully qualified domain name:
 
-To configure a valid, fixed hostname for the `slurmctld` instance, the pod's
-`setHostnameAsFQDN` setting must be set to `true`. This will cause the hostname
-of the `slurmctld` pod to be
-`<release>-slurmctld-0.<release>-slurmctld.<namespace>.svc.cluster.local`,
-where `<release>` is the name of the release (which is also the `ClusterName`)
-and `<namespace>` is the Kubernetes namespace that the helm is installed to.
+  ```
+  <release>-slurmctld-0.<release>-slurmctld.<namespace>.svc.cluster.local
+  ```
 
-**No `nodeSelector` configuration should be set**. Without `nodeSelector` set,
-the hostname mentioned above will be automatically set as the `SlurmctldHost`.
+  * `<release>` is the Helm release name (also used as `ClusterName`).
+  * `<namespace>` is the Kubernetes namespace.
 
-To allow dynamic `slurmd` instances to resolve this hostname, Kubernetes
-should be instructed to create a DNS record for the pod. This is done
-automatically by the chart, via creating a *headless* service, in addition to
-the *normal* `ClusterIP` service.
+* ❌ **Do not set a nodeSelector**.
 
-When installing the chart on a local cluster (without `iscsi` storage
-facilities), the `storageClass` of the spool storage of `slurmctld`
-needs to be set to `local-path`.
+* The chart will automatically:
 
-#### Slurmdbd
+  * Set the correct `SlurmctldHost`.
+  * Create a **headless service** to make the hostname resolvable.
 
-Similarly, the `slurmdbd` instance should have *no* `nodeSelector` configured,
-as well as its hostname be set to its FQDN by setting `setHostnameAsFQDN` to
-`true`. This will result in its hostname to be `<release>-slurmdbd`, and the
-chart will automatically set this hostname as the `AccountingStorageHost` in
-`slurm.conf` and the `DbdHost` in `slurmdbd.conf`.
+> 🧑‍💻 **Local clusters (e.g., kind/k3d)** may require setting `storageClass: local-path` for `slurmctld` spool storage.
 
-There's also an additional `headless` service for this pod, to create a DNS
-record for it to be resolvable and accessible from the `slurmd` instances.
+#### slurmdbd 📊
 
-#### Ganesha
+* Set `setHostnameAsFQDN: true` (results in hostname `<release>-slurmdbd`).
+* ❌ **Do not set a nodeSelector**.
+* The chart automatically sets:
 
-In most cases, the `ganesha` instance is not required, so it can be disabled
-and configured to have exactly 0 replicas, but if needed it can be left as it
-is, enabled with 1 replica.
+  * `AccountingStorageHost` in `slurm.conf`
+  * `DbdHost` in `slurmdbd.conf`
+* A **headless service** is also created for hostname resolution.
 
-#### Slurmd
+#### slurmd 🖥️
 
-The `slurmd` subchart should be enabled, and its numbers of replicas can be
-set as required by the test case.
+* Enable the `slurmd` subchart.
+* Set the number of replicas based on test requirements.
 
-#### Slurm config
+#### Slurm Configuration 🛠️
 
-A `Nodeset` should be configured with `Feature=k8s`.
+* Define a `Nodeset` with `Feature=k8s`.
 
-Some plugin selection must also be changed:
+* Replace the following plugins (since `cgroup` is not usable):
 
-- `JobAcctGatherType` - `cgroup` plugin cannot be used, use `linux` instead.
-- `ProctrackType` - `cgroup` plugin cannot be used, use `linuxproc` instead.
-- `TaskPlugin` - `cgroup` plugin cannot be used, use `affinity` instead (some
-  configurations include both plugins, simply removing the `cgroup` plugin is
-  fine as well).
+  | Setting             | Production | Testing                       |
+  | ------------------- | ---------- | ----------------------------- |
+  | `JobAcctGatherType` | `cgroup`   | `linux`                       |
+  | `ProctrackType`     | `cgroup`   | `linuxproc`                   |
+  | `TaskPlugin`        | `cgroup`   | `affinity` or remove `cgroup` |
 
-Similarly, to not interfere with local `systemd` on local machines, local
-testing installation requires setting `ignoreSystemd` setting to `true`.
+* Set `ignoreSystemd: true` to avoid interfering with local systemd.
+
+---

@@ -46,9 +46,6 @@ spec:
       {{- with .Values.networkSettings }}
       {{ toYaml . | nindent 6 }}
       {{- end }}
-      dnsConfig:
-        searches:
-          - pc8080.pele.local
       initContainers:
         - name: init-node
           image: "{{ include "slurm.image.repository" . }}:{{ include "slurm.image.tag" . }}"

@@ -8,7 +8,7 @@ replicaCount: 0
 
 image:
   # repository: cr.fluentbit.io/fluent/fluent-bit
-  repository: artifactory.pele.local/pele-dockers/devops/third-party/fluentbit/fluent-bit
+  repository: fluent/fluent-bit
   # Overrides the image tag whose default is {{ .Chart.AppVersion }}
   # Set to "-" to not use the default value
   tag: latest
@@ -406,7 +406,7 @@ config:
     [OUTPUT]
         name es
         match *
-        host elasticsearch.pc8080.pele.local
+        host <HOST>
         port 9200
         generate_id False
         index slurm-headnode

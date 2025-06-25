@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: artifactory.pele.local/pele-dockers/devops/base/slurm
+  repository: ""
   tag: "0.0.0" # Forcing the developer to set value when deploying new release
   pullPolicy: Always
 
